@@ -47,7 +47,9 @@ resource "aws_lambda_function" "Lambda_StockPriceStreamingResponse" {
   role = aws_iam_role.IAMRole_StockPriceStreamingResponse.arn
   package_type = "Image"
   image_uri = "${data.aws_ecr_repository.StockPriceStreamingResponse.repository_url}:latest"
+  memory_size = 512
   timeout = 300
+  
   environment {
     variables = {
       AWS_LWA_INVOKE_MODE="RESPONSE_STREAM"
@@ -62,5 +64,5 @@ resource "aws_lambda_function_url" "LambdaURL_StockPriceStreamingResponse" {
 }
 
 output "StockPriceStreamingResponse_URL" {
-  value="${aws_lambda_function_url.LambdaURL_StockPriceStreamingResponse.function_url}ask"
+  value="${aws_lambda_function_url.LambdaURL_StockPriceStreamingResponse.function_url}question"
 }
