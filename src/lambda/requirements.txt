@@ -1,0 +1,9 @@
+fastapi
+langgraph
+langchain_aws
+langchain
+yfinance
+datetime
+uvicorn
+pydantic
+typing
