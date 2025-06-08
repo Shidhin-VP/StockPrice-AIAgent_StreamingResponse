@@ -7,6 +7,7 @@
 
 # Ignore Terraform lock file (optional but recommended to ignore in most cases unless managing team state)
 .terraform.lock.hcl
+**/.terraform.tfstate.lock.info
 
 #Removing URL Access
 .env
