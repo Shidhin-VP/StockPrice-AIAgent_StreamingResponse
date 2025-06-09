@@ -78,8 +78,7 @@ app=FastAPI()
 
 async def StreamResponses(question:str,thinking:bool,name:str):
     llm=ChatBedrockConverse(
-    #model="us.meta.llama4-scout-17b-instruct-v1:0",
-    model="us.amazon.nova-premier-v1:0",
+    model="us.amazon.nova-micro-v1:0",
     region_name="us-east-1",
     temperature=0.7
     )

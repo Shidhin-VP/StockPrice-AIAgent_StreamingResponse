@@ -41,17 +41,17 @@ st.title("🤖 Stock Price Agent")
 if st.session_state.show_settings or not st.session_state.url_set:
     with st.expander("🔧 Set API Endpoint and Username (Required)", expanded=True):
         new_url = st.text_input("Enter new API URL (Required):", value=st.session_state.api_url)
-        username = st.text_input("Enter your name (Required):", value=st.session_state.username)
+        #username = st.text_input("Enter your name (Required):", value=st.session_state.username)
 
         if st.button("Save Endpoint"):
-            if new_url.strip().startswith("http") and username.strip():
+            if new_url.strip().startswith("http"):
                 st.session_state.api_url = new_url.strip()
-                st.session_state.username = username.strip()
+                #st.session_state.username = username.strip()
                 st.session_state.url_set = True
                 st.session_state.show_settings = False
                 st.success("✅ Info saved. Click Save Endpoint again to fold the Expander")
             else:
-                st.warning("⚠️ Please enter a valid URL and name.")
+                st.warning("⚠️ Please enter a valid URL.")
 else:
     with st.container():
         col1, col2 = st.columns([0.85, 0.15])
@@ -64,7 +64,7 @@ if st.session_state.url_set:
     prompt = st.text_input("💬 Enter your prompt")
 
     if st.button("Submit"):
-        st.info("📢 if you don't see a response afer few sec until the Top Right Running Status Stops later, please press Submit again. ")
+        st.info("📢 if you don't see a response after few sec after the Top Right Running Status Stops, please press Submit again. ")
 
         try:
             # Send request with stream=True
