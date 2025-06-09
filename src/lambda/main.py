@@ -10,9 +10,10 @@ import uvicorn
 import yfinance as yf
 from datetime import datetime
 import os
+import uuid
 #--------------------------------Tools Initialization---------------------------------------------------
 
-@tool(description="Fetches the Real Time Stock Price of a Company or a Ticker")
+@tool(name_or_callable="get_realtime_price",description="Fetches the Real Time Stock Price of a Company or a Ticker")
 def retrieve_realtime_stock_price(ticker:str)->str:
     """
         Fetches the Real-Time Stock Price for a given Ticker Symbol (eg.AAPL, MSFT)
@@ -20,18 +21,48 @@ def retrieve_realtime_stock_price(ticker:str)->str:
     try:
         stock=yf.Ticker(ticker.upper())
         price=stock.history(period="1d")["Close"][-1]
-        return price
+        return str(price)
     except Exception as e:
         return f"Error fetching real-time stock price for {ticker} and the Error is: {str(e)}"
     
-@tool(description="Fetches the Current Date and Time (Datetime)")
+@tool(name_or_callable="get_historical_prices",description="Fetches the Stock Price of a company/ticker the user requests for a period of time FROM and TO. If the user does not give an interval, use '1d' as default.")
+def retrieve_historical_stock_price(ticker: str, start: str, end: str, interval: str = "1d") -> str:
+    """
+    Fetch historical stock prices for a given ticker symbol between a date range. If the user is asking for a period of time, give all the values don't stop if they ask for 1 year also give the entire values fully in a well structured manner, like tables.
+    
+    Parameters:
+    - ticker (str): Ticker symbol (e.g., 'AAPL')
+    - start (str): Start date in 'YYYY-MM-DD' format
+    - end (str): End date in 'YYYY-MM-DD' format
+    - interval (str): Data interval (default is '1d'). Valid intervals: 1m, 2m, 5m, 15m, 1d, 1wk, 1mo
+    
+    Returns:
+    - str: Summary of historical prices
+    """
+    try:
+        stock = yf.Ticker(ticker.upper())
+        hist = stock.history(start=start, end=end, interval=interval)
+
+        if hist.empty:
+            return f"No historical data found for {ticker.upper()} from {start} to {end} with interval '{interval}'."
+
+        # Format the first few rows as a string
+        hist_reset = hist.reset_index()
+        hist_str = hist_reset[["Date", "Open", "High", "Low", "Close"]].to_string(index=False)
+        #return f"Historical prices for {ticker.upper()} from {start} to {end} (interval: {interval}):\n{hist_str}"
+        return hist_str
+    except Exception as e:
+        return f"Error fetching historical stock data for {ticker.upper()}: {str(e)}"
+    
+    
+@tool(name_or_callable="get_realtime_datetime",description="Fetches the Current Date and Time (Datetime)")
 def get_current_datetime()->str:
     """
         Fetches Current Date and Time to understand and give the correct price of the Stock
     """
     return datetime.now()
 
-tools=[retrieve_realtime_stock_price,get_current_datetime]
+tools=[retrieve_realtime_stock_price,retrieve_historical_stock_price,get_current_datetime]
 
 #--------------------------------Tools Declared---------------------------------------------------
 
@@ -61,12 +92,12 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                 - Avoid using technical jargon unless the user requests it
 
                 Important:
-                After responding to the user's **first** stock-related question, include a short, natural warning (in your own words) that says you're only providing information and not offering financial advice. Do **not** repeat this warning again in later responses unless the user explicitly asks about investing again.
+                After responding to the user's **first** stock-related question, include a short, natural warning (in your own words by bolding the fonts for the Importance) that says you're only providing information and not offering financial advice. Do **not** repeat this warning again in later responses unless the user explicitly asks about investing again.
              """
     )
 
     try:
-        for token, metadata in agent.stream(
+        async for token, metadata in agent.astream(
             {"messages":[
                 {
                     "role":"user",
@@ -85,6 +116,7 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                 print("-"*85)
                 print(f"Name inside the Token: {name}")
                 print(f"Full Chunk: {token}")
+                print(f"Full MetaData: {metadata}")
                 if isinstance(token.content, list):
                     print(f"Chunks: {token}")
                     for chunk in token.content:
@@ -97,6 +129,12 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                                 thinking=False
                                 print(f"Chunk Finished Thinking: {thinking} and content is: {chunk['text']}")
                                 continue
+                            elif chunk['text']=="Your input has blocked due to policy restrictions.":
+                                print(f"Type of Metadata: {type(metadata)}")
+                                print(f"Checkpoint Id: {metadata['checkpoint_id']}")
+                                memory.delete_thread(thread_id=name)
+                                yield chunk['text']
+                                continue
                             elif thinking==False and (chunk['text']=="thinking" or chunk['text']=="thinking>"):
                                 print(f"Clearing the Finishing the Thinking and content is: {chunk['text']}")
                                 continue
@@ -105,7 +143,7 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                 else:
                     print("Warning: Chunk is not a list")
             except Exception as e:
-                print("Error to Parse Data and Response was not was not a List")
+                print(f"Error When Fetching Token: {e}")
 
     except Exception as e:
         yield f"Error: {e}"
@@ -119,7 +157,7 @@ def get_question(question:StockQuestion):
     print(f"Question: {question.Stockquestion}")
     print(f"Name: {question.name}")
     print(f"Guardrail Id: {guardrail_id}")
-    return StreamingResponse(StreamResponses(question.Stockquestion,False,question.name),media_type="text/event_stream")
+    return StreamingResponse(StreamResponses(question.Stockquestion,False,(question.name).capitalize()),media_type="text/event_stream")
 
 if __name__=="__main__":
     uvicorn.run(app,host="0.0.0.0",port=8080)

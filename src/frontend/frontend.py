@@ -1,63 +1,78 @@
-# import streamlit as st
-# import requests
-
-# st.title("Chat Stream Demo")
-
-# prompt = st.text_input("Enter a prompt")
-
-# if st.button("Send") and prompt:
-#     response = requests.post(
-#         "https://taqs2mkiv2vlpbwvwik7quxfnm0mtnee.lambda-url.us-east-1.on.aws/question",
-#         json={"Stockquestion": prompt},
-#         stream=True,
-#         headers={"Content-Type": "application/json"}
-#     )
-    
-#     def generate_response():
-#         for chunk in response.iter_content(chunk_size=None):
-#             if chunk:
-#                 yield chunk.decode("utf-8")
-    
-#     st.write_stream(generate_response())
-
 import streamlit as st
 import requests
+import re
+import os
+from pathlib import Path
 
-st.title("Chat Stream Demo")
+S_accessCode=st.secrets['access_code']
+print(f"SAccess: {S_accessCode}")
 
-# Initialize session state for name
-if "name_entered" not in st.session_state:
-    st.session_state.name_entered = False
+# --- Session State Setup ---
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-# Prompt for name if not already entered
-if not st.session_state.name_entered:
-    name = st.text_input("Please enter your name to continue")
-    
-    if name:
-        st.session_state.name_entered = True
-        st.session_state.user_name = name
-        st.rerun()
+if "api_url" not in st.session_state:
+    st.session_state.api_url = ""
 
-# After name is entered, show prompt input
+if "url_set" not in st.session_state:
+    st.session_state.url_set = False
+
+if "show_settings" not in st.session_state:
+    st.session_state.show_settings = True  
+
+# --- AUTH PAGE ---
+if not st.session_state.authenticated:
+    st.title("🔐 Enter Access Code to Continue")
+    access_code = st.text_input("Access Code", type="password")
+    if st.button("Unlock"):
+        if access_code == S_accessCode:  
+            st.session_state.authenticated = True
+            st.success("Access granted. Click Unlock again to be redirected")
+        else:
+            st.error("Invalid code.")
+    st.stop()
+
+# --- HEADER ---
+st.title("🤖 Stock Price Agent")
+
+
+if st.session_state.show_settings or not st.session_state.url_set:
+    with st.expander("🔧 Set API Endpoint (Required)", expanded=True):
+        new_url = st.text_input("Enter new API URL (Required):", value=st.session_state.api_url)
+        if st.button("Save Endpoint"):
+            if new_url.strip().startswith("http"):
+                st.session_state.api_url = new_url.strip()
+                st.session_state.url_set = True
+                st.session_state.show_settings = False
+                st.success("✅ Endpoint saved. Click Save Endpoint again to fold the Expander")
+            else:
+                st.warning("⚠️ Please enter a valid URL starting with http or https.")
 else:
-    st.write(f"Hello **{st.session_state.user_name}**, you can now enter a prompt below.")
+    with st.container():
+        col1, col2 = st.columns([0.85, 0.15])
+        with col2:
+            if st.button("⚙️"):
+                st.session_state.show_settings = True
 
-    prompt = st.text_input("Enter a prompt")
+# --- MAIN CHAT INTERFACE ---
+if st.session_state.url_set:
+    prompt = st.text_input("💬 Enter your prompt")
 
-    if st.button("Send") and prompt:
-        response = requests.post(
-            "https://daz2tpt3nxzbcgnfboc5nmmvay0xuqqt.lambda-url.us-east-1.on.aws/question",
-            json={
-                "Stockquestion": prompt,
-                "name": st.session_state.user_name
-            },
-            stream=True,
-            headers={"Content-Type": "application/json"}
-        )
+    if st.button("Submit"):
+        try:
+            response = requests.post(
+                st.session_state.api_url,
+                json={"prompt": prompt}
+            )
 
-        def generate_response():
-            for chunk in response.iter_content(chunk_size=None):
-                if chunk:
-                    yield chunk.decode("utf-8")
-
-        st.write_stream(generate_response())
+            if response.ok:
+                result = response.json()
+                answer = result.get("AI Result", "No Result")
+                cleanedAnswer = re.sub(r"<thinking>.*?</thinking>", "", answer, flags=re.DOTALL)
+                st.write(cleanedAnswer.strip())
+            else:
+                st.error(f"❌ Request failed: {response.status_code}")
+        except Exception as e:
+            st.error(f"⚠️ Error: {e}")
+else:
+    st.info("Please enter a valid API endpoint to continue.")
