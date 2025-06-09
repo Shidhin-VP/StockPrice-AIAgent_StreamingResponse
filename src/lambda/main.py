@@ -13,20 +13,26 @@ import os
 import uuid
 #--------------------------------Tools Initialization---------------------------------------------------
 
-@tool(name_or_callable="get_realtime_price",description="Fetches the Real Time Stock Price of a Company or a Ticker")
+Rstatus=""
+Astatus=""
+
+@tool(description="Fetchs the Current and Closest Stock price for a given ticker symbol (eg. AAPL, MSFT), REALTIME Price of the Stock")
 def retrieve_realtime_stock_price(ticker:str)->str:
     """
-        Fetches the Real-Time Stock Price for a given Ticker Symbol (eg.AAPL, MSFT)
+    Fetchs the Current and Closest Stock price for a given ticker symbol (eg. AAPL, MSFT)
     """
+    global Rstatus
     try:
         stock=yf.Ticker(ticker.upper())
         price=stock.history(period="1d")["Close"][-1]
-        return str(price)
+        Rstatus=f"The Current Price of {ticker.upper()} is ${price:.2f}"
+        return price
     except Exception as e:
-        return f"Error fetching real-time stock price for {ticker} and the Error is: {str(e)}"
+        Rstatus=f"Error fetching stock price for {ticker}: {str(e)}"
+        return Rstatus
     
-@tool(name_or_callable="get_historical_prices",description="Fetches the Stock Price of a company/ticker the user requests for a period of time FROM and TO. If the user does not give an interval, use '1d' as default.")
-def retrieve_historical_stock_price(ticker: str, start: str, end: str, interval: str = "1d") -> str:
+@tool(description="Fetches the Stock Price of a company/ticker the user requests for a period of time FROM and TO. If the user does not give an interval, use '1d' as default.")
+def Retrieve_historical_stock_price(ticker: str, start: str, end: str, interval: str = "1d") -> str:
     """
     Fetch historical stock prices for a given ticker symbol between a date range. If the user is asking for a period of time, give all the values don't stop if they ask for 1 year also give the entire values fully in a well structured manner, like tables.
     
@@ -48,21 +54,21 @@ def retrieve_historical_stock_price(ticker: str, start: str, end: str, interval:
 
         # Format the first few rows as a string
         hist_reset = hist.reset_index()
-        hist_str = hist_reset[["Date", "Open", "High", "Low", "Close"]].to_string(index=False)
+        hist_str = hist_reset[["Date", "Open", "High", "Low", "Close"]].head(5).to_string(index=False)
         #return f"Historical prices for {ticker.upper()} from {start} to {end} (interval: {interval}):\n{hist_str}"
         return hist_str
     except Exception as e:
         return f"Error fetching historical stock data for {ticker.upper()}: {str(e)}"
+
     
-    
-@tool(name_or_callable="get_realtime_datetime",description="Fetches the Current Date and Time (Datetime)")
+@tool(description="Tool which will return real tie datetime")
 def get_current_datetime()->str:
     """
-        Fetches Current Date and Time to understand and give the correct price of the Stock
+    Get the current date and time in a human-readable format.
     """
-    return datetime.now()
 
-tools=[retrieve_realtime_stock_price,retrieve_historical_stock_price,get_current_datetime]
+    now=datetime.now()
+    return now
 
 #--------------------------------Tools Declared---------------------------------------------------
 
@@ -72,29 +78,16 @@ app=FastAPI()
 
 async def StreamResponses(question:str,thinking:bool,name:str):
     llm=ChatBedrockConverse(
-        model="us.amazon.nova-micro-v1:0",
-        region_name="us-east-1",
-        temperature=0.7,
-        #guardrails={"guardrailIdentifier": guardrail_id, "guardrailVersion": "DRAFT"}
+    #model="us.meta.llama4-scout-17b-instruct-v1:0",
+    model="us.amazon.nova-premier-v1:0",
+    region_name="us-east-1",
+    temperature=0.7
     )
-
     agent=create_react_agent(
-        model=llm,
-        tools=tools,
-        #checkpointer=memory,
-        prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs and you have access to get realtime date and time, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable.")
-    #     prompt="""
-    #             You are an AI Assistant that helps users retrieve real-time and historical stock prices for companies and ticker symbols.
-
-    #             Your responses must:
-    #             - Be written in plain English that is easy for humans to understand
-    #             - Be formatted in a readable style, like Times New Roman (note: you don’t need to output actual font settings unless specifically asked)
-    #             - Avoid using technical jargon unless the user requests it
-
-    #             Important:
-    #             After responding to the user's **first** stock-related question, include a short, natural warning (in your own words by bolding the fonts for the Importance) that says you're only providing information and not offering financial advice. Do **not** repeat this warning again in later responses unless the user explicitly asks about investing again.
-    #          """
-    # )
+    model=llm,
+    tools=[retrieve_realtime_stock_price,Retrieve_historical_stock_price,get_current_datetime],
+    prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable."
+    )
 
     try:
         async for token, metadata in agent.astream(
@@ -105,11 +98,6 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                 }
             ],
             },
-            # config={
-            #     "thread_id":name,
-            #     "checkpoint_ns":f"{name}-Memory",
-            #     "checkpoint_id":f"{name}-{datetime.now()}"
-            # },
             stream_mode="messages"
         ):
             try:
@@ -129,12 +117,6 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                                 thinking=False
                                 print(f"Chunk Finished Thinking: {thinking} and content is: {chunk['text']}")
                                 continue
-                            # elif chunk['text']=="Your input has blocked due to policy restrictions.":
-                            #     # print(f"Type of Metadata: {type(metadata)}")
-                            #     # print(f"Checkpoint Id: {metadata['checkpoint_id']}")
-                            #     # memory.delete_thread(thread_id=name)
-                            #     yield chunk['text']
-                            #     continue
                             elif thinking==False and (chunk['text']=="thinking" or chunk['text']=="thinking>"):
                                 print(f"Clearing the Finishing the Thinking and content is: {chunk['text']}")
                                 continue
