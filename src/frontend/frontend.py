@@ -144,6 +144,8 @@ else:
 # --- MAIN CHAT INTERFACE ---
 if st.session_state.url_set:
     prompt = st.text_input("💬 Enter your prompt")
+    test1=st.text_input(st.session_state.api_url)
+    test2=st.text_input(st.session_state.username)
 
     if st.button("Submit"):
         try:
