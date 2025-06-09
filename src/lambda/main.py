@@ -22,6 +22,7 @@ def retrieve_realtime_stock_price(ticker:str)->str:
     Fetchs the Current and Closest Stock price for a given ticker symbol (eg. AAPL, MSFT)
     """
     global Rstatus
+    print("Called Real-Time stock price")
     try:
         stock=yf.Ticker(ticker.upper())
         price=stock.history(period="1d")["Close"][-1]
@@ -32,7 +33,7 @@ def retrieve_realtime_stock_price(ticker:str)->str:
         return Rstatus
     
 @tool(description="Fetches the Stock Price of a company/ticker the user requests for a period of time FROM and TO. If the user does not give an interval, use '1d' as default.")
-def Retrieve_historical_stock_price(ticker: str, start: str, end: str, interval: str = "1d") -> str:
+def retrieve_historical_stock_price(ticker: str, start: str, end: str, interval: str = "1d") -> str:
     """
     Fetch historical stock prices for a given ticker symbol between a date range. If the user is asking for a period of time, give all the values don't stop if they ask for 1 year also give the entire values fully in a well structured manner, like tables.
     
@@ -45,6 +46,8 @@ def Retrieve_historical_stock_price(ticker: str, start: str, end: str, interval:
     Returns:
     - str: Summary of historical prices
     """
+
+    print("Called Historical Price")
     try:
         stock = yf.Ticker(ticker.upper())
         hist = stock.history(start=start, end=end, interval=interval)
@@ -54,18 +57,20 @@ def Retrieve_historical_stock_price(ticker: str, start: str, end: str, interval:
 
         # Format the first few rows as a string
         hist_reset = hist.reset_index()
-        hist_str = hist_reset[["Date", "Open", "High", "Low", "Close"]].head(5).to_string(index=False)
+        hist_str = hist_reset[["Date", "Open", "High", "Low", "Close"]].to_string(index=False)
         #return f"Historical prices for {ticker.upper()} from {start} to {end} (interval: {interval}):\n{hist_str}"
         return hist_str
     except Exception as e:
         return f"Error fetching historical stock data for {ticker.upper()}: {str(e)}"
 
     
-@tool(description="Tool which will return real tie datetime")
+@tool(name_or_callable="date_and_time_fetcher",description="Tool which will return real tie datetime")
 def get_current_datetime()->str:
     """
     Get the current date and time in a human-readable format.
     """
+
+    print("Called Time Tool")
 
     now=datetime.now()
     return now
@@ -84,8 +89,23 @@ async def StreamResponses(question:str,thinking:bool,name:str):
     )
     agent=create_react_agent(
     model=llm,
-    tools=[retrieve_realtime_stock_price,Retrieve_historical_stock_price,get_current_datetime],
-    prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable."
+    tools=[get_current_datetime,retrieve_realtime_stock_price,retrieve_historical_stock_price],
+    #prompt=f"You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs and todays date and time for your reference is: {datetime.now()}, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable."
+    prompt = """
+        You are an AI assistant that helps users retrieve real-time and historical stock prices for companies and ticker symbols.
+
+        You have access to the following tools:
+        - `get_realtime_datetime` (use this tool to find the current date)
+        - `get_historical_prices` (use this tool to get the historical Price of a ticker, and use the 'get_realtime_datetime` tool if you need to fetch current date and time and proceed furter for fetching the historical data)
+        - `get_realtime_price` (use this tool to get the real time price of the tinker or company)
+
+        IMPORTANT:
+        - When the user uses date-relative phrases such as "today", "yesterday", "this week", etc., you **must first call** `get_realtime_datetime` to get the current date.
+        - Do not guess or assume the current date. Always call the datetime tool before computing historical time windows.
+        - Only use real values returned from tools, never hallucinate dates.
+        - Remind the user (once per session) that you are not a financial advisor and they should do their own research before making investment decisions.
+"""
+
     )
 
     try:
@@ -100,21 +120,20 @@ async def StreamResponses(question:str,thinking:bool,name:str):
             stream_mode="messages"
         ):
             try:
-                print("-"*60)
+                #print("-"*60)
                 # print(f"Name inside the Token: {name}")
-                print(f"Full Chunk: {token}")
-                print(f"Full MetaData: {metadata}")
+                #print(f"Full Chunk: {token}")
+                #print(f"Full MetaData: {metadata}")
                 if isinstance(token.content, list):
-                    print(f"Chunks: {token}")
                     for chunk in token.content:
                         if chunk['type']=='text':
                             if chunk['text']=="<thinking":
                                 thinking=True
-                                print(f"Warning : Chunk is Thinking: {thinking}")
+                                print(f"Warning : Chunk is Thinking: {thinking} \n TestingChunk: {chunk['text']}")
                                 continue
                             elif (chunk['text']==".</") or (chunk['text']=="</"):
                                 thinking=False
-                                print(f"Chunk Finished Thinking: {thinking} and content is: {chunk['text']}")
+                                print(f"Chunk Finished Thinking: {thinking} and \n FinishedTestingChunk: {chunk['text']}")
                                 continue
                             elif thinking==False and (chunk['text']=="thinking" or chunk['text']=="thinking>"):
                                 print(f"Clearing the Finishing the Thinking and content is: {chunk['text']}")
@@ -127,6 +146,7 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                 print(f"Error When Fetching Token: {e}")
 
     except Exception as e:
+        print(f"Error: {e}")
         yield f"Error: {e}"
 
 class StockQuestion(BaseModel):
