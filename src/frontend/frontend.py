@@ -79,7 +79,6 @@
 
 
 
-
 import streamlit as st
 import requests
 import re
@@ -144,27 +143,29 @@ else:
 # --- MAIN CHAT INTERFACE ---
 if st.session_state.url_set:
     prompt = st.text_input("💬 Enter your prompt")
-    test1=st.text_input(st.session_state.api_url)
-    test2=st.text_input(st.session_state.username)
 
     if st.button("Submit"):
         try:
+            # Send request with stream=True
             response = requests.post(
                 st.session_state.api_url,
                 json={
-                    "Stockquestion": prompt,
+                    "Stockquestion": prompt,  # adjust if API expects different key
                     "name": st.session_state.username
-                }
+                },
+                stream=True,
+                headers={"Content-Type": "application/json"}
             )
 
-            if response.ok:
-                result = response.json()
-                answer = result.get("AI Result", "No Result")
-                cleanedAnswer = re.sub(r"<thinking>.*?</thinking>", "", answer, flags=re.DOTALL)
-                st.write(cleanedAnswer.strip())
-            else:
-                st.error(f"❌ Request failed: {response.status_code}")
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
+            # Display the streaming content
+            def generate_response():
+                for chunk in response.iter_content(chunk_size=None):
+                    if chunk:
+                        yield chunk.decode("utf-8")
+
+            st.write_stream(generate_response())
+
+        except requests.exceptions.RequestException as e:
+            st.error(f"⚠️ Request failed: {e}")
 else:
     st.info("Please enter a valid API endpoint and username to continue.")
