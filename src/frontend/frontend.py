@@ -62,9 +62,10 @@ else:
 # --- MAIN CHAT INTERFACE ---
 if st.session_state.url_set:
     prompt = st.text_input("💬 Enter your prompt")
-    st.info("📢 if you don't see a response afer few sec, please press Submit again. ")
 
     if st.button("Submit"):
+        st.info("📢 if you don't see a response afer few sec, please press Submit again. ")
+
         try:
             # Send request with stream=True
             response = requests.post(
