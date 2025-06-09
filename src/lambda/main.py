@@ -67,8 +67,8 @@ tools=[retrieve_realtime_stock_price,retrieve_historical_stock_price,get_current
 #--------------------------------Tools Declared---------------------------------------------------
 
 app=FastAPI()
-memory=MemorySaver()
-guardrail_id=os.getenv("GUARDRAIL_ID")
+# memory=MemorySaver()
+# guardrail_id=os.getenv("GUARDRAIL_ID")
 
 async def StreamResponses(question:str,thinking:bool,name:str):
     llm=ChatBedrockConverse(
@@ -82,7 +82,7 @@ async def StreamResponses(question:str,thinking:bool,name:str):
         model=llm,
         tools=tools,
         #checkpointer=memory,
-        prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs you have access to get realtime datetime, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable. Also, ONLY FOR YOUR REFERENCE (in your own words by bolding the fonts for the Importance): Warn Them as this is about price saying something like, but not exactly like this warn them in your own word (IMPORTANT) **You are just a help but the user needs to understand and research before any purchace or financial process**")
+        prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs and you have access to get realtime date and time, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable.")
     #     prompt="""
     #             You are an AI Assistant that helps users retrieve real-time and historical stock prices for companies and ticker symbols.
 
@@ -113,8 +113,8 @@ async def StreamResponses(question:str,thinking:bool,name:str):
             stream_mode="messages"
         ):
             try:
-                print("-"*85)
-                print(f"Name inside the Token: {name}")
+                print("-"*60)
+                # print(f"Name inside the Token: {name}")
                 print(f"Full Chunk: {token}")
                 print(f"Full MetaData: {metadata}")
                 if isinstance(token.content, list):
@@ -129,12 +129,12 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                                 thinking=False
                                 print(f"Chunk Finished Thinking: {thinking} and content is: {chunk['text']}")
                                 continue
-                            elif chunk['text']=="Your input has blocked due to policy restrictions.":
-                                print(f"Type of Metadata: {type(metadata)}")
-                                print(f"Checkpoint Id: {metadata['checkpoint_id']}")
-                                memory.delete_thread(thread_id=name)
-                                yield chunk['text']
-                                continue
+                            # elif chunk['text']=="Your input has blocked due to policy restrictions.":
+                            #     # print(f"Type of Metadata: {type(metadata)}")
+                            #     # print(f"Checkpoint Id: {metadata['checkpoint_id']}")
+                            #     # memory.delete_thread(thread_id=name)
+                            #     yield chunk['text']
+                            #     continue
                             elif thinking==False and (chunk['text']=="thinking" or chunk['text']=="thinking>"):
                                 print(f"Clearing the Finishing the Thinking and content is: {chunk['text']}")
                                 continue
@@ -155,8 +155,8 @@ class StockQuestion(BaseModel):
 @app.post("/question")
 def get_question(question:StockQuestion):
     print(f"Question: {question.Stockquestion}")
-    print(f"Name: {question.name}")
-    print(f"Guardrail Id: {guardrail_id}")
+    # print(f"Name: {question.name}")
+    # print(f"Guardrail Id: {guardrail_id}")
     return StreamingResponse(StreamResponses(question.Stockquestion,False,(question.name).capitalize()),media_type="text/event_stream")
 
 if __name__=="__main__":
