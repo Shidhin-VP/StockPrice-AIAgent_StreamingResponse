@@ -75,26 +75,26 @@ async def StreamResponses(question:str,thinking:bool,name:str):
         model="us.amazon.nova-micro-v1:0",
         region_name="us-east-1",
         temperature=0.7,
-        guardrails={"guardrailIdentifier": guardrail_id, "guardrailVersion": "DRAFT"}
+        #guardrails={"guardrailIdentifier": guardrail_id, "guardrailVersion": "DRAFT"}
     )
 
     agent=create_react_agent(
         model=llm,
         tools=tools,
-        checkpointer=memory,
-        #prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable. Also, ONLY FOR YOUR REFERENCE: Warn Them as this is about price saying something like, but not exactly like this warn them in your own word (IMPORTANT) **You are just a help but the user needs to understand and research before any purchace or financial process**"
-        prompt="""
-                You are an AI Assistant that helps users retrieve real-time and historical stock prices for companies and ticker symbols.
+        #checkpointer=memory,
+        prompt="You are a AI Assistant that will give user the Real-Time and Historical Stock Prices of Companies/Tickers as per user needs you have access to get realtime datetime, You will only response in plain English and Human Understandable Format and in Times New Roman Font if possible, keep the font human understandable. Also, ONLY FOR YOUR REFERENCE (in your own words by bolding the fonts for the Importance): Warn Them as this is about price saying something like, but not exactly like this warn them in your own word (IMPORTANT) **You are just a help but the user needs to understand and research before any purchace or financial process**")
+    #     prompt="""
+    #             You are an AI Assistant that helps users retrieve real-time and historical stock prices for companies and ticker symbols.
 
-                Your responses must:
-                - Be written in plain English that is easy for humans to understand
-                - Be formatted in a readable style, like Times New Roman (note: you don’t need to output actual font settings unless specifically asked)
-                - Avoid using technical jargon unless the user requests it
+    #             Your responses must:
+    #             - Be written in plain English that is easy for humans to understand
+    #             - Be formatted in a readable style, like Times New Roman (note: you don’t need to output actual font settings unless specifically asked)
+    #             - Avoid using technical jargon unless the user requests it
 
-                Important:
-                After responding to the user's **first** stock-related question, include a short, natural warning (in your own words by bolding the fonts for the Importance) that says you're only providing information and not offering financial advice. Do **not** repeat this warning again in later responses unless the user explicitly asks about investing again.
-             """
-    )
+    #             Important:
+    #             After responding to the user's **first** stock-related question, include a short, natural warning (in your own words by bolding the fonts for the Importance) that says you're only providing information and not offering financial advice. Do **not** repeat this warning again in later responses unless the user explicitly asks about investing again.
+    #          """
+    # )
 
     try:
         async for token, metadata in agent.astream(
@@ -105,11 +105,11 @@ async def StreamResponses(question:str,thinking:bool,name:str):
                 }
             ],
             },
-            config={
-                "thread_id":name,
-                "checkpoint_ns":f"{name}-Memory",
-                "checkpoint_id":f"{name}-{datetime.now()}"
-            },
+            # config={
+            #     "thread_id":name,
+            #     "checkpoint_ns":f"{name}-Memory",
+            #     "checkpoint_id":f"{name}-{datetime.now()}"
+            # },
             stream_mode="messages"
         ):
             try:
