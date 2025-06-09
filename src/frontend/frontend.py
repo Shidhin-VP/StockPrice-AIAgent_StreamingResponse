@@ -150,8 +150,8 @@ if st.session_state.url_set:
             response = requests.post(
                 st.session_state.api_url,
                 json={
-                    "prompt": prompt,
-                    "username": st.session_state.username
+                    "Stockquestion": prompt,
+                    "name": st.session_state.username
                 }
             )
 
