@@ -3,7 +3,7 @@
 # About
 This project is a Chatbot that has the capability to fetch Real-Time and Historical Prices of the stock the user wants. This project gives the output same like [StockPrice-AIAgent](https://github.com/Shidhin-VP/StockPrice-AIAgent), but with differnt technologies, which are described below and with a Streaming Response.
 ## Technologies Used. 
-### For Backedn
+### For Backend
 ***Backend Infrastructures are Built Using Terraform***
 1. AWS Lambda
 2. AWS Lambda URL
@@ -22,3 +22,5 @@ This Image can be considered for reference to know how the Infrastructure is con
 1. Need to Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 2. Need to Install [Terraform](https://developer.hashicorp.com/terraform/install)
 3. Signup to [AWS Console](https://aws.amazon.com/)
+
+# Installation Instructions
