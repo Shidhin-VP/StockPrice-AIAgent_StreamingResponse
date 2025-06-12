@@ -33,5 +33,9 @@ This Image can be considered for reference to know how the Infrastructure is con
 ```python
 git clone https://github.com/Shidhin-VP/StockPrice-AIAgent_StreamingResponse.git
 ```
-* After cloning you can run 
+* After cloning the Infrastructures can be deleted or activated from the Terraform Code from path:
+```python
+src/terraform/main.tf
+```
+
 
