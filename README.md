@@ -1,5 +1,17 @@
 # StockPrice-AIAgent_StreamingResponse
 
+## 📚 Table of Contents
+- [About](#About)
+- [Working Model](#working-model)
+- [Technologies Used](#technologies-used)
+- [Prerequisites](#prerequisites)
+- [Installation & Program Running Instructions](#installation--program-running-instructions)
+  - [How To Install](#how-to-install)
+  - [How To Run](#how-to-run)
+    - [Web Interface](#to-run-and-deploy-web-interface)
+    - [Mobile Application](#to-run-mobile-application)
+
+
 # About
 This project is a Chatbot that has the capability to fetch Real-Time and Historical Prices of the stock the user wants. This project gives the output same like [StockPrice-AIAgent](https://github.com/Shidhin-VP/StockPrice-AIAgent), but with differnt technologies, which are described below and with a Streaming Response.
 # Working Model
