@@ -2,6 +2,9 @@
 
 # About
 This project is a Chatbot that has the capability to fetch Real-Time and Historical Prices of the stock the user wants. This project gives the output same like [StockPrice-AIAgent](https://github.com/Shidhin-VP/StockPrice-AIAgent), but with differnt technologies, which are described below and with a Streaming Response.
+# Working Model
+![Github Profiling 1](https://github.com/user-attachments/assets/579bee05-883e-4f6e-a6a3-095def450f20)
+
 ## Technologies Used. 
 ### For Backend
 ***Backend Infrastructures are Built Using Terraform***
@@ -98,9 +101,6 @@ src/mobile_frontend/lib/main.dart
 * Start asking question and have fun
   <img width="1280" alt="image" src="https://github.com/user-attachments/assets/4208194e-ef1e-4c05-9341-af44c8611f2a" />
   <img width="1280" alt="image" src="https://github.com/user-attachments/assets/bede3e35-8da9-4940-bb72-655d029260be" />
-
-
-
 
 
 
