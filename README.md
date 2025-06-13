@@ -4,7 +4,7 @@
 - [About](#About)
 - [Working Model](#working-model)
 - [Technologies Used](#technologies-used)
-- [Prerequisites](#prerequisites)
+- [Prerequisites](#prerequisite)
 - [Installation & Program Running Instructions](#installation--program-running-instructions)
   - [How To Install](#how-to-install)
   - [How To Run](#how-to-run)
@@ -74,11 +74,23 @@ src/frontend/frontend.py
 * Click the Deploy button at the top right corner, later you can select the free version and press **Deploy Now**:
   
   <img width="1280" alt="image" src="https://github.com/user-attachments/assets/828989d0-9b21-412e-9755-a5c12d7e16bf" />
-  * Later: 
+  
+  * Later:
+    (*****Please Note** The below process can not always be guaranteed to be in the same steps, it can vary sometimes, it can be shuffled (for Instance, step 3 can come first and step 1 on third or fourth, please understand the steps and the UI of Streamlit to deploy***) **--** ***Will be Easy 🙂😉***
      * Signin to Streamlit
      * Connect via GitHub
      * Click **Deploy**
-* After deploying the webpage will be up-to-date as the code gets updated to GitHub. (***Don't forget to pull git to localhost after Deploying the web to streamlit***)
+     * Check to find **My app** section and find the prefered project
+       <img width="1280" alt="image" src="https://github.com/user-attachments/assets/109b9b3f-cbc9-4386-8e29-68b7b2e8a34d" />
+
+    * Click the **Hamburger button** which is shown vertically for the desired project like shown in the image:
+      <img width="1280" alt="image" src="https://github.com/user-attachments/assets/d827f4b4-993f-437c-bfef-901372c28566" />
+
+    * Click **Settings** and navigate to **Secrets**.
+      <img width="1280" alt="image" src="https://github.com/user-attachments/assets/68c5dfa4-d585-446c-8155-b7773b24aedf" />
+
+    * Create a variable name, named **access_code** and write the desired access code to make the site secured.
+* After deploying the webpage will be up-to-date as the code gets updated to GitHub. (***Don't forget to pull git to localhost after Deploying the web to streamlit, as streamlit will add a new folder to our project***)
 * Push all the changes that are done to the ***UI Frontend Python Code*** to Github.
 ### To run Mobile Application
 * Navigate to the below shown path via VsCode:
